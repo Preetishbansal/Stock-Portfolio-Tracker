@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Portfolio Tracker - Dashboard</title>
+    <meta name="description" content="Track your stock portfolio performance with real-time data and analytics.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #10b981;
+            --green-bg: rgba(16, 185, 129, 0.1);
+            --red: #ef4444;
+            --red-bg: rgba(239, 68, 68, 0.1);
+            --border: #334155;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* ── Header ──────────────────────────────── */
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo svg { width: 28px; height: 28px; }
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        nav a:hover, nav a.active {
+            color: var(--text-primary);
+            background: var(--bg-card-hover);
+        }
+
+        /* ── Main Layout ─────────────────────────── */
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        /* ── Summary Cards ───────────────────────── */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .summary-card:hover::before { opacity: 1; }
+        .summary-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .card-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .card-value { font-size: 1.8rem; font-weight: 700; }
+        .card-value.positive { color: var(--green); }
+        .card-value.negative { color: var(--red); }
+
+        /* ── Actions Row ─────────────────────────── */
+        .actions-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .action-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+        .action-card h2 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        input[type="text"], input[type="number"] {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            flex: 1;
+            min-width: 100px;
+            transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        input::placeholder { color: var(--text-muted); }
+        button {
+            background: linear-gradient(135deg, #6366f1, #7c3aed);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        button:hover { transform: translateY(-1px); box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-sell {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+        .btn-sell:hover { box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+
+        /* ── Holdings Table ──────────────────────── */
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .table-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.5);
+        }
+        td {
+            padding: 0.9rem 1.2rem;
+            font-size: 0.88rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        tr:hover td { background: rgba(99, 102, 241, 0.05); }
+        .symbol-badge {
+            background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15));
+            color: #a5b4fc;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            letter-spacing: 0.03em;
+        }
+        .pnl-positive { color: var(--green); font-weight: 600; }
+        .pnl-negative { color: var(--red); font-weight: 600; }
+        .pnl-tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .pnl-tag.positive { background: var(--green-bg); color: var(--green); }
+        .pnl-tag.negative { background: var(--red-bg); color: var(--red); }
+
+        /* ── Sector Allocation ───────────────────── */
+        .sector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+        }
+        .sector-item {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .sector-name { font-size: 0.85rem; font-weight: 500; }
+        .sector-bar {
+            height: 6px;
+            background: rgba(99,102,241,0.15);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .sector-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        .sector-pct { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* ── Flash Messages ──────────────────────── */
+        .flash {
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+        .flash-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .flash-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* ── Empty State ─────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+        .empty-state svg { width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.4; }
+        .empty-state h3 { color: var(--text-secondary); margin-bottom: 0.5rem; }
+
+        /* ── Responsive ──────────────────────────── */
+        @media (max-width: 768px) {
+            .actions-row { grid-template-columns: 1fr; }
+            .form-row { flex-direction: column; }
+            .container { padding: 1rem; }
+            header { padding: 1rem; }
+        }
+
+        /* ── Animations ──────────────────────────── */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .summary-card, .action-card, .table-card {
+            animation: fadeIn 0.4s ease forwards;
+        }
+        .summary-card:nth-child(2) { animation-delay: 0.05s; }
+        .summary-card:nth-child(3) { animation-delay: 0.1s; }
+        .summary-card:nth-child(4) { animation-delay: 0.15s; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#6366f1">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                <polyline points="16 7 22 7 22 13"/>
+            </svg>
+            PortfolioTracker
+        </div>
+        <nav>
+            <a href="/" class="active">Dashboard</a>
+            <a href="/transactions">Transactions</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- ── Flash Messages ─────────────────────── -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">
+                  {% if category == 'error' %}⚠️{% else %}✅{% endif %} {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <!-- ── Summary Cards ──────────────────────── -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="card-label">Total Invested</div>
+                <div class="card-value">&#8377;{{ "%.2f"|format(portfolio.total_invested) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Current Value</div>
+                <div class="card-value">&#8377;{{ "%.2f"|format(portfolio.total_current_value) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Profit / Loss</div>
+                <div class="card-value {{ 'positive' if portfolio.overall_pnl >= 0 else 'negative' }}">
+                    {{ "+" if portfolio.overall_pnl >= 0 else "" }}&#8377;{{ "%.2f"|format(portfolio.overall_pnl) }}
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Return %</div>
+                <div class="card-value {{ 'positive' if portfolio.overall_pnl_pct >= 0 else 'negative' }}">
+                    {{ "+" if portfolio.overall_pnl_pct >= 0 else "" }}{{ "%.2f"|format(portfolio.overall_pnl_pct) }}%
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Buy / Sell Actions ─────────────────── -->
+        <div class="actions-row">
+            <div class="action-card">
+                <h2>📈 Buy Stock</h2>
+                <form action="/add_stock" method="POST">
+                    <div class="form-row">
+                        <input type="text" id="buy-symbol" name="symbol" placeholder="Symbol (e.g. RELIANCE.NS)" required>
+                        <input type="number" id="buy-quantity" name="quantity" placeholder="Qty" step="any" min="0.01" required>
+                        <input type="number" id="buy-price" name="price" placeholder="Price (auto)" step="any">
+                        <button type="submit">Buy</button>
+                    </div>
+                </form>
+            </div>
+            <div class="action-card">
+                <h2>📉 Sell Stock</h2>
+                <form action="/sell_stock" method="POST">
+                    <div class="form-row">
+                        <input type="text" id="sell-symbol" name="symbol" placeholder="Symbol" required>
+                        <input type="number" id="sell-quantity" name="quantity" placeholder="Qty" step="any" min="0.01" required>
+                        <input type="number" id="sell-price" name="price" placeholder="Price (auto)" step="any">
+                        <button type="submit" class="btn-sell">Sell</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── Holdings Table ─────────────────────── -->
+        <div class="table-card">
+            <div class="table-header">📊 Your Holdings</div>
+            {% if portfolio.holdings %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Company</th>
+                        <th>Sector</th>
+                        <th>Shares</th>
+                        <th>Avg Cost</th>
+                        <th>Current Price</th>
+                        <th>Invested</th>
+                        <th>Current Value</th>
+                        <th>P&L</th>
+                        <th>Return</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in portfolio.holdings %}
+                    <tr>
+                        <td><span class="symbol-badge">{{ h.symbol }}</span></td>
+                        <td>{{ h.company }}</td>
+                        <td style="color:var(--text-muted)">{{ h.sector }}</td>
+                        <td>{{ h.shares }}</td>
+                        <td>&#8377;{{ "%.2f"|format(h.avg_cost) }}</td>
+                        <td>&#8377;{{ "%.2f"|format(h.current_price) }}</td>
+                        <td>&#8377;{{ "%.2f"|format(h.invested) }}</td>
+                        <td>&#8377;{{ "%.2f"|format(h.current_value) }}</td>
+                        <td class="{{ 'pnl-positive' if h.pnl >= 0 else 'pnl-negative' }}">
+                            {{ "+" if h.pnl >= 0 else "" }}&#8377;{{ "%.2f"|format(h.pnl) }}
+                        </td>
+                        <td>
+                            <span class="pnl-tag {{ 'positive' if h.pnl_pct >= 0 else 'negative' }}">
+                                {{ "+" if h.pnl_pct >= 0 else "" }}{{ "%.2f"|format(h.pnl_pct) }}%
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 8v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3>No holdings yet</h3>
+                <p>Use the Buy Stock form above to add your first investment.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ── Sector Allocation ──────────────────── -->
+        {% if sectors %}
+        <div class="table-card">
+            <div class="table-header">🏢 Sector Allocation</div>
+            <div style="padding: 1.2rem;">
+                <div class="sector-grid">
+                    {% for s in sectors %}
+                    <div class="sector-item">
+                        <div class="sector-name">{{ s.sector or 'Other' }}</div>
+                        <div class="sector-bar">
+                                <div class="sector-fill" {{ ('style="width: ' ~ s.allocation_pct ~ '%"') | safe }}></div>
+                        </div>
+                        <div class="sector-pct">{{ s.allocation_pct }}% · &#8377;{{ "%.2f"|format(s.total_invested) }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Auto-fetch real-time price when moving away from the symbol input
+        const buySymbolInput = document.getElementById('buy-symbol');
+        const buyPriceInput = document.getElementById('buy-price');
+
+        const sellSymbolInput = document.getElementById('sell-symbol');
+        const sellPriceInput = document.getElementById('sell-price');
+
+        async function fetchLivePrice(symbol, priceInput) {
+            if (!symbol) return;
+            priceInput.placeholder = "Fetching...";
+            try {
+                const response = await fetch(`/api/stock/${symbol}`);
+                const data = await response.json();
+                if (response.ok && data.price) {
+                    priceInput.value = data.price;
+                    priceInput.placeholder = "Price (auto)";
+                } else {
+                    priceInput.value = "";
+                    priceInput.placeholder = "Price (auto)";
+                }
+            } catch (err) {
+                console.error("Error fetching live price:", err);
+                priceInput.placeholder = "Price (auto)";
+            }
+        }
+
+        buySymbolInput.addEventListener('blur', (e) => fetchLivePrice(e.target.value.trim(), buyPriceInput));
+        sellSymbolInput.addEventListener('blur', (e) => fetchLivePrice(e.target.value.trim(), sellPriceInput));
+    </script>
+</body>
+</html>
